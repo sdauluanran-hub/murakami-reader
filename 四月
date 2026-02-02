@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>村上春树短篇阅读器 | 四月某个晴朗的早晨遇见100%的女孩</title>
+    <style>
+        :root {
+            --bg-color: #f9f7f4;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --border-color: #e6e2dd;
+            --primary-color: #5c4b37;
+            --secondary-color: #8c7c69;
+            --highlight-color: rgba(255, 235, 150, 0.5);
+            --vocab-color: rgba(180, 220, 255, 0.4);
+            --sentence-color: rgba(200, 255, 200, 0.4);
+            --culture-color: rgba(255, 220, 180, 0.4);
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            --font-size-base: 16px;
+            --line-height: 1.7;
+            --spacing-unit: 20px;
+        }
+
+        /* 夜间模式变量 */
+        .night-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2a2a2a;
+            --border-color: #444;
+            --primary-color: #b8a27a;
+            --secondary-color: #a09070;
+            --highlight-color: rgba(255, 220, 100, 0.3);
+            --vocab-color: rgba(80, 120, 180, 0.4);
+            --sentence-color: rgba(80, 160, 80, 0.4);
+            --culture-color: rgba(180, 120, 80, 0.4);
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 专注模式变量 */
+        .focus-mode {
+            --bg-color: #f0efe8;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --border-color: #d4c4a8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height);
+            padding: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* 顶部控制栏 */
+        .control-bar {
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            flex: 1;
+            max-width: 300px;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .mode-btn.active {
+            box-shadow: 0 0 0 2px var(--primary-color), 0 0 0 4px rgba(92, 75, 55, 0.3);
+        }
+
+        /* 跳转选择器 */
+        .jump-selector {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            min-width: 100px;
+        }
+
+        /* 主要内容区 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        /* 段落卡片 */
+        .paragraph-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .focus-mode .paragraph-card:not(.focused) {
+            opacity: 0.5;
+            filter: blur(1px);
+            transform: scale(0.98);
+        }
+
+        .paragraph-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .paragraph-number {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .paragraph-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* 原文内容 */
+        .original-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+
+        .night-mode .original-text {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        /* 词汇高亮 */
+        .vocab-highlight {
+            background-color: var(--vocab-color);
+            padding: 0 2px;
+            border-radius: 2px;
+            cursor: help;
+            position: relative;
+            transition: background-color 0.2s;
+            border-bottom: 1px dashed rgba(0, 0, 100, 0.3);
+        }
+
+        .night-mode .vocab-highlight {
+            border-bottom: 1px dashed rgba(200, 200, 255, 0.3);
+        }
+
+        .vocab-highlight:hover {
+            background-color: rgba(150, 200, 255, 0.7);
+        }
+
+        /* 可展开面板 */
+        .expandable-panel {
+            margin-top: 15px;
+            border-radius: 6px;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s, opacity 0.3s, margin 0.3s;
+        }
+
+        .expandable-panel.expanded {
+            max-height: 800px;
+            opacity: 1;
+            margin-top: 15px;
+        }
+
+        .panel-header {
+            background-color: var(--border-color);
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .panel-content {
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            line-height: 1.6;
+        }
+
+        .night-mode .panel-content {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .notes .panel-header {
+            background-color: rgba(140, 124, 105, 0.2);
+        }
+
+        .summary .panel-header {
+            background-color: rgba(92, 75, 55, 0.2);
+        }
+
+        .translation .panel-header {
+            background-color: rgba(100, 120, 150, 0.2);
+        }
+
+        .vocab-notes .panel-header {
+            background-color: rgba(80, 120, 200, 0.2);
+        }
+
+        .sentence-notes .panel-header {
+            background-color: rgba(80, 180, 100, 0.2);
+        }
+
+        .culture-notes .panel-header {
+            background-color: rgba(200, 140, 80, 0.2);
+        }
+
+        /* 注释内容样式 */
+        .notes-content {
+            font-size: 0.95rem;
+        }
+
+        .notes-section {
+            margin-bottom: 15px;
+        }
+
+        .notes-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .notes-section ul {
+            padding-left: 20px;
+        }
+
+        .notes-section li {
+            margin-bottom: 5px;
+        }
+
+        .highlighted-term {
+            background-color: var(--highlight-color);
+            padding: 0 3px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            :root {
+                --font-size-base: 15px;
+                --spacing-unit: 15px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .control-bar {
+                padding: 10px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: center;
+                margin-bottom: 5px;
+            }
+            
+            .progress-container {
+                max-width: 100%;
+                margin: 10px 0;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .paragraph-card {
+                padding: 15px;
+            }
+            
+            .paragraph-controls {
+                flex-wrap: wrap;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            .btn-small {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --font-size-base: 14px;
+            }
+            
+            .control-group {
+                justify-content: space-between;
+            }
+            
+            .btn {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+            
+            .jump-selector {
+                min-width: 80px;
+                padding: 6px 8px;
+            }
+            
+            .paragraph-controls {
+                gap: 5px;
+            }
+        }
+        
+        /* 过滤器样式 */
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部控制栏 -->
+    <div class="control-bar">
+        <div class="control-group">
+            <button class="btn btn-secondary" id="expand-all">展开全部</button>
+            <button class="btn btn-secondary" id="collapse-all">收起全部</button>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="control-group">
+            <button class="btn mode-btn" id="night-mode">夜间模式</button>
+            <button class="btn mode-btn" id="focus-mode">专注模式</button>
+            
+            <select class="jump-selector" id="jump-selector">
+                <option value="">跳转到段落</option>
+                <!-- 段落选项将由JavaScript动态生成 -->
+            </select>
+        </div>
+    </div>
+
+    <!-- 主要内容区 -->
+    <div class="container">
+        <header class="header">
+            <h1>村上春树短篇：『四月某个晴朗的早晨遇见100%的女孩』</h1>
+            <div class="subtitle">读书会预习材料（第二次）</div>
+            <p>适用对象：日语专业低年级（1-2年学习）/文学阅读入门</p>
+        </header>
+        
+        <!-- 过滤器 -->
+        <div class="filter-controls">
+            <button class="filter-btn active" data-filter="all">全部段落</button>
+            <button class="filter-btn" data-filter="real">现实段落</button>
+            <button class="filter-btn" data-filter="fable">寓言段落</button>
+        </div>
+
+        <!-- 段落卡片将在这里动态生成 -->
+        <div id="paragraphs-container"></div>
+    </div>
+
+    <script>
+        // 段落数据 - 包含所有51个段落
+        const paragraphs = [
+            {
+                id: 1,
+                original: "四月のある晴れた朝、原宿の裏通りで僕は１００パーセントの女の子とすれ違う。",
+                vocabNotes: "① <span class='highlighted-term'>原宿（はらじゅく）</span>：东京涩谷区的地名，以年轻人时尚、潮流文化闻名。<br>" +
+                          "② <span class='highlighted-term'>裏通り（うらどおり）</span>：主路旁边的次要街道（「裏」表「背后、旁边」）。<br>" +
+                          "③ <span class='highlighted-term'>すれ違う（すれちがう）</span>：擦肩而过、交错而行（自动词，描述两人相向而行经过）。<br>" +
+                          "④ <span class='highlighted-term'>１００パーセント</span>：百分百、完全（此处引申为「完全契合的人」，非字面数值）。",
+                sentenceNotes: "无复杂长句（单句陈述核心事件）。",
+                cultureNotes: "「<span class='highlighted-term'>１００パーセントの女の子</span>」：文中并非指外貌完美，而是「对『我』而言灵魂/感觉100%契合的对象」，需结合上下文理解隐喻。",
+                summary: "四月の晴れた朝、語り手は原宿で「100%の女の子」とすれ違う。",
+                translation: "四月一个晴朗的早晨，在原宿的后街，'我'和一个'100%契合的女孩'擦肩而过。",
+                highlights: ["原宿", "裏通り", "すれ違う", "１００パーセント"],
+                type: "real"
+            },
+            {
+                id: 2,
+                original: "たいして綺麗な女の子ではない。素敵な服を着ているわけでもない。髪の後ろの方には寝ぐせがついたままだし、歳だっておそらくもう三十に近いはずだ。しかし五十メートルも先から僕にはちゃんとわかっていた。彼女は僕にとっての１００パーセントの女の子なのだ。彼女の姿を目にした瞬間から僕の胸は不規則に震え、口の中は砂漠みたいにカラカラに乾いてしまう。",
+                vocabNotes: "① <span class='highlighted-term'>たいして～ない</span>：不太、不怎么（后接否定，表程度低）。<br>" +
+                          "② <span class='highlighted-term'>寝ぐせ（ねぐせ）</span>：睡乱的头发（「寝る」+「ぐせ」表「习惯/状态残留」）。<br>" +
+                          "③ <span class='highlighted-term'>～わけでもない</span>：并不是……（表部分否定，强调「并非如此」）。<br>" +
+                          "④ <span class='highlighted-term'>カラカラ</span>：拟态词，形容干燥、干涩的声音/口感。",
+                sentenceNotes: "无超长句（多短句并列描述女子的普通与「我」的直觉）。",
+                cultureNotes: "「<span class='highlighted-term'>たいして綺麗じゃない</span>」：村上常用「反差感」——外表普通的女子却是「100%」，引导读者关注「内在契合」而非外在。",
+                summary: "彼女は特別美人ではないが、語り手は直感的に「100%」だと確信する。",
+                translation: "她并不算漂亮，也谈不上穿得出众，头发还带着睡乱的痕迹，年龄大概快到三十。但从五十米外我就确信：她就是属于我的'100%女孩'。看见她的瞬间，我胸口不规则地颤动，嘴里像沙漠一样干。",
+                highlights: ["たいして", "寝ぐせ", "わけでもない", "カラカラ"],
+                type: "real"
+            },
+            {
+                id: 3,
+                original: "あるいはあなたには好みの女の子のタイプがあるかもしれない。例えば足首の細い女の子がいいだとか、やはり目の大きい女の子だなとか、絶対に指の綺麗な女の子だとか、よくわからないけれどゆっくり時間をかけて食事をする女の子にひかれるとか、そんな感じだ。僕にだってもちろんそんな好みはある。レストランで食事をしながら、隣りのテーブルに座った女の子の鼻の形に見とれたりすることもある。",
+                vocabNotes: "① <span class='highlighted-term'>タイプ</span>：类型、款式（此处指「喜欢的女生类型」）。<br>" +
+                          "② <span class='highlighted-term'>～だとか</span>：列举举例（口语化，表「比如……之类的」）。<br>" +
+                          "③ <span class='highlighted-term'>見とれる（みとれる）</span>：看得入迷、看呆（「見る」的可能态+补助动词「とる」，表专注状态）。",
+                sentenceNotes: "主干：あなたには好みのタイプがあるかもしれない。<br>" +
+                             "修饰：例えば～そんな感じだ（举例说明「好み」的具体内容）；僕にだって～見とれたりすることもある（转折说「我也有偏好」，并补充细节）。",
+                cultureNotes: "「<span class='highlighted-term'>足首の細い</span>」「<span class='highlighted-term'>目の大きい</span>」：日本文化中常见的「女性美」具象化特征，村上列此是为了对比后文「100%女子无法用『类型』定义」。",
+                summary: "人には好みのタイプがあり、語り手にも日常の中でそうした嗜好がある。",
+                translation: "也许你也有自己偏爱的'女孩类型'：比如脚踝细、眼睛大、手指好看，或是喜欢慢慢吃饭的那种。我当然也有这种偏好，吃饭时甚至会盯着旁桌女孩的鼻子看得出神。",
+                highlights: ["タイプ", "だとか", "見とれる", "足首の細い", "目の大きい"],
+                type: "real"
+            },
+            {
+                id: 4,
+                original: "しかし１００パーセントの女の子をタイプファイすることなんて誰にもできない。彼女の鼻がどんな格好をしていたかなんて、僕には絶対に思い出せない。いや、鼻があったのかどうかさえうまく思い出せない。僕が今思い出せるのは、彼女はたいして美人じゃなかったということだけである。なんだか不思議なものだ。",
+                vocabNotes: "① <span class='highlighted-term'>タイプファイ</span>：type find？应为「タイプを決める」（确定类型）的口语变体？不，村上常用外来词，此处意为「用『类型』框定100%女子」。<br>" +
+                          "② <span class='highlighted-term'>思い出せない（おもいだせない）</span>：想不起来（可能态否定，「思い出す」=回忆起）。<br>" +
+                          "③ <span class='highlighted-term'>さえ</span>：甚至（加强语气，如「名前さえ忘れた」=连名字都忘了）。",
+                sentenceNotes: "主干：１００パーセントの女の子をタイプファイすることは誰にもできない。<br>" +
+                             "修饰：彼女の鼻が～思い出せない；いや、鼻があったのかどうかさえ～思い出せない（递进说明「连具体部位都想不起」）；僕が今思い出せるのは～だけである（转折点出唯一能想起的「不漂亮」）。",
+                cultureNotes: "「<span class='highlighted-term'>鼻があったのかどうかさえ…</span>」：极端举例强调「100%女子超越『类型』——连身体特征都模糊，只留『感觉』」，呼应前文「好みのタイプ」的反差。",
+                summary: "しかし「100%」はタイプ分けできず、彼女の具体的特徴は思い出せない。",
+                translation: "但'100%女孩'无法按类型去归类。她鼻子是什么样我完全想不起来，甚至是否有鼻子都记不清。我只记得：她并不怎么美。这真是奇怪。",
+                highlights: ["タイプファイ", "思い出せない", "さえ", "たいして"],
+                type: "real"
+            },
+            {
+                id: 5,
+                original: "「昨日１００パーセントの女の子と道ですれ違ったんだ」と僕は誰かに言う。",
+                summary: "語り手は誰かに「100%の女の子とすれ違った」と話す。",
+                translation: "我对某个人说：'昨天我在路上和一个100%女孩擦肩而过。'",
+                highlights: ["すれ違った"],
+                type: "real"
+            },
+            {
+                id: 6,
+                original: "「ふうん」と彼は答える。「美人だったのかい？」「いや、そんなわけじゃないんだ」",
+                summary: "相手は美人かどうかを尋ね、語り手は否定する。",
+                translation: "他回答'哦？'又问：'很漂亮吗？'我说：'不是那样。'",
+                highlights: ["そんなわけじゃない"],
+                type: "real"
+            },
+            {
+                id: 7,
+                original: "「じゃあ好みのタイプだったんだな」",
+                summary: "相手は好みのタイプだったのかと聞く。",
+                translation: "他又说：'那就是你喜欢的类型吧？'",
+                highlights: ["タイプ"],
+                type: "real"
+            },
+            {
+                id: 8,
+                original: "「それが思い出せないんだ。目がどんな形をしていたかとか、胸が大きいか小さいかとか、まるで何も覚えていないんだよ」",
+                summary: "語り手は外見の細部を何も覚えていないと言う。",
+                translation: "我说：'也记不清。眼睛什么形状、胸大不大...几乎什么都不记得。'",
+                highlights: ["思い出せない", "まるで"],
+                type: "real"
+            },
+            {
+                id: 9,
+                original: "「変なものだな」",
+                summary: "相手はそれを不思議だと言う。",
+                translation: "他说：'真奇怪。'",
+                type: "real"
+            },
+            {
+                id: 10,
+                original: "「変なものだよ」",
+                summary: "語り手も同意して「変だ」と返す。",
+                translation: "我说：'是啊，真奇怪。'",
+                type: "real"
+            },
+            {
+                id: 11,
+                original: "「それで」と彼は退屈そうに言った。「何かしたのかい、声をかけるとか、あとをついていくとかさ」",
+                vocabNotes: "① <span class='highlighted-term'>退屈そうに</span>：看起来无聊（「～そうに」表外观推测）。<br>" +
+                          "② <span class='highlighted-term'>あとをつける（あとをつける）</span>：跟踪、尾随（口语化表达，表「跟着某人」）。",
+                summary: "相手は声をかけたのかと退屈そうに問う。",
+                translation: "他无聊似的问：'那然后呢？你做了什么？比如搭话、跟上去？'",
+                highlights: ["退屈そうに", "あとをつける"],
+                type: "real"
+            },
+            {
+                id: 12,
+                original: "「何もしない」と僕は言った。「ただすれ違っただけさ」",
+                summary: "語り手は何もせず、ただすれ違っただけだと言う。",
+                translation: "我说：'什么也没做，只是擦肩而过。'",
+                highlights: ["すれ違った"],
+                type: "real"
+            },
+            {
+                id: 13,
+                original: "彼女は東から西へ、僕は西から東に向けて歩いていた。とても気持の良い四月の朝だ。",
+                summary: "二人は反対方向に歩いており、爽やかな四月の朝だった。",
+                translation: "她从东向西走，我从西向东走。那是个很舒服的四月早晨。",
+                type: "real"
+            },
+            {
+                id: 14,
+                original: "たとえ三十分でもいいから彼女と話をしてみたいと僕は思う。彼女の身の上を聞いてみたいし、僕の身の上を打ちあけてもみたい。そして何よりも、一九八一年の四月のある晴れた朝に、我々が原宿の裏通りですれ違うに至った運命の経緯のようなものを解き明かしてみたいと思う。きっとそこには平和な時代の古い機械のような温かい秘密が充ちているに違いない。",
+                vocabNotes: "① <span class='highlighted-term'>身の上（みのうえ）</span>：身世、经历（如「身の上話」=身世故事）。<br>" +
+                          "② <span class='highlighted-term'>打ちあける（うちあける）</span>：坦诚相告、敞开心扉（「打つ」=打开+「明ける」=亮出来，表「暴露内心」）。<br>" +
+                          "③ <span class='highlighted-term'>経緯（けいい）</span>：来龙去脉、经过（如「事件の経緯」=事件的经过）。<br>" +
+                          "④ <span class='highlighted-term'>充ちる（みちる）</span>：充满、填满（自动词）。",
+                sentenceNotes: "主干：僕は思う；僕は聞いてみたい；僕は打ちあけてもみたい；僕は解き明かしてみたいと思う；そこには秘密が充ちているに違いない。<br>" +
+                             "修饰：たとえ三十分でもいいから（让步，表「哪怕30分钟也想聊」）；何よりも～解き明かしてみたい（递进，强调最想探究「命运的原因」）；平和な時代の古い機械のような（比喻「秘密」的质感：旧却温暖）。",
+                cultureNotes: "「<span class='highlighted-term'>古い機械のような温かい秘密</span>」：村上常用「機械」喻「时代的秩序感」，「温暖」则反讽现代社会的疏离——1981年的相遇藏着「未被功利污染的纯粹命运」。",
+                summary: "語り手は彼女と話し、出会いの経緯を知りたいと強く願う。",
+                translation: "我想哪怕能和她聊三十分钟也好：想知道她的经历，也想告诉她我的经历。更想弄清：我们为什么会在1981年四月的这个早晨、在原宿后街擦肩而过——那里面一定装着某种温暖的秘密。",
+                highlights: ["身の上", "打ちあける", "経緯", "充ちる", "すれ違う", "運命"],
+                type: "real"
+            },
+            {
+                id: 15,
+                original: "我々はそんな話をしてからどこかで昼食をとり、ウディー・アレンの映画でも観て、ホテルのバーに寄ってカクテルか何かを飲む。うまくいけば、そのあとで彼女と寝ることになるかもしれない。",
+                summary: "語り手は昼食や映画やバーなど、理想の展開を思い描く。",
+                translation: "我想象我们聊完去吃午饭、看一部伍迪·艾伦的电影、再去酒店酒吧喝杯鸡尾酒。顺利的话，也许之后会和她上床。",
+                highlights: ["かもしれない"],
+                type: "real"
+            },
+            {
+                id: 16,
+                original: "可能性が僕の心のドアを叩く。",
+                summary: "可能性が心をノックするように感じる。",
+                translation: "'可能性'像在敲我心里的门。",
+                type: "real"
+            },
+            {
+                id: 17,
+                original: "僕と彼女のあいだの距離はもう十五メートルばかりに近づいている。",
+                summary: "二人の距離は十五メートルまで近づく。",
+                translation: "我和她之间的距离已经缩短到十五米左右。",
+                type: "real"
+            },
+            {
+                id: 18,
+                original: "さて、僕はいったいどんな風に彼女に話しかければいいのだろう？",
+                summary: "語り手はどう話しかけるべきか迷う。",
+                translation: "那么，我到底该怎样跟她开口？",
+                highlights: ["話しかける"],
+                type: "real"
+            },
+            {
+                id: 19,
+                original: "「こんにちは。ほんの三十分でいいんだけれど僕と話をしてくれませんか？」",
+                summary: "「三十分だけ話して」と言う案を考える。",
+                translation: "'你好。只要三十分钟，可以和我聊聊吗？'",
+                type: "real"
+            },
+            {
+                id: 20,
+                original: "馬鹿げてる。まるで保険の勧誘みたいだ。",
+                vocabNotes: "① <span class='highlighted-term'>保険の勧誘（ほけんのせんゆう）</span>：保险推销（文中比喻第一句搭话「像推销一样生硬」）。",
+                summary: "それは保険の勧誘のようで馬鹿げていると感じる。",
+                translation: "太蠢了，简直像卖保险的推销。",
+                highlights: ["保険の勧誘"],
+                type: "real"
+            },
+            {
+                id: 21,
+                original: "「すみません。このあたりに二十四時間営業のクリーニング屋はありますか？」",
+                vocabNotes: "① <span class='highlighted-term'>クリーニング屋（くりーにんぐや）</span>：干洗店（第二句搭话的理由，却无洗衣袋）。",
+                summary: "クリーニング屋を尋ねる案を思いつく。",
+                translation: "'打扰一下，这附近有24小时营业的洗衣店吗？'",
+                highlights: ["クリーニング屋"],
+                type: "real"
+            },
+            {
+                id: 22,
+                original: "これも馬鹿げてる。だいいち僕は洗濯物の袋さえ持ってはいないではないか。",
+                vocabNotes: "① <span class='highlighted-term'>～さえ</span>：连……都（强调程度）<br>" +
+                          "② <span class='highlighted-term'>だいいち</span>：说到底/首先（带强调）<br>" +
+                          "③ <span class='highlighted-term'>～ではないか</span>：反问/强调（难道不是……吗）",
+                summary: "しかし洗濯物もなく、これも馬鹿げていると思う。",
+                translation: "这也很蠢。我连装洗衣物的袋子都没有。",
+                highlights: ["さえ", "だいいち", "ではないか"],
+                type: "real"
+            },
+            {
+                id: 23,
+                original: "あるいは「すみません、あなたは僕にとって１００パーセントの女の子なんですよ」",
+                summary: "「あなたは僕にとって100%」と正直に言う案を考える。",
+                translation: "或者干脆坦白点：'你好，你对我来说是100%契合的女孩。'",
+                highlights: ["１００パーセント"],
+                type: "real"
+            },
+            {
+                id: 24,
+                original: "彼女はおそらくそんな科白を信じてはくれないだろう。それにもし信じてくれたとしても、彼女は僕と話なんかしたくないと思うかもしれない。あなたにとって私が１００パーセントの女の子だとしても、私にとってあなたは１００パーセントの男じゃないのよ、と彼女は言うかもしれない。そういう事態に陥ったとしたら、きっと僕はおそろしく混乱してしまうに違いない。僕はもう三十二で、結局のところ年を取るというのはそういうことなのだ。",
+                vocabNotes: "① <span class='highlighted-term'>科白（せりふ）</span>：台词、对白（文中指「想好的搭话内容」）。<br>" +
+                          "② <span class='highlighted-term'>～に違いない</span>：一定……（很强的主观判断）<br>" +
+                          "③ <span class='highlighted-term'>陥る（おちいる）</span>：陷入（不利局面）",
+                summary: "だが彼女は信じず、相互の100%でない可能性に語り手は怯える。",
+                translation: "她大概不会相信。就算信了，也可能不想和我说话：就算你觉得我是你的100%，但你对我未必是100%。如果真变成那样，我一定会非常混乱。我已经三十二岁了一一所谓变老，大概就是这么回事。",
+                highlights: ["科白", "に違いない", "かもしれない", "陥る"],
+                type: "real"
+            },
+            {
+                id: 25,
+                original: "花屋の店先で、僕は彼女とすれ違う。温かい小さな空気の塊りが僕の肌に触れる。アスファルトの舗道には水が撒かれていて、あたりにはバラの花の匂いがする。僕は彼女に声をかけることもできない。彼女は白いセーターを着て、まだ切手の貼られていない白い角封筒を右手に持っている。彼女は誰かに手紙を書いたのだ。彼女はひどく眠そうな目をしていたから、あるいは一晩かけてそれを書き上げたのかもしれない。そしてその角封筒の中には彼女についての秘密の全てが収まっているのかもしれない。",
+                vocabNotes: "① <span class='highlighted-term'>空気の塊り（くうきのかたまり）</span>：一团空气（比喻「温暖的具体触感」，村上的感官描写特色）。<br>" +
+                          "② <span class='highlighted-term'>撒かれる（まかれる）</span>：被洒（被动形，「水が撒かれる」=水被洒在路面）。<br>" +
+                          "③ <span class='highlighted-term'>角封筒（かくふうとう）</span>：方形信封（与「圆信封」相对，更日常）。<br>" +
+                          "④ <span class='highlighted-term'>貼られる（はられる）</span>：被贴（被动形，「切手が貼られる」=邮票被贴上）。",
+                sentenceNotes: "主干：僕は彼女とすれ違う；空気の塊りが触れる；水が撒かれる；匂いがする；僕は声をかけられない；彼女はセーターを着る；彼女は封筒を持つ；彼女は手紙を書いた；彼女は眠そうな目だ；封筒に秘密が収まる。<br>" +
+                             "修饰：温かい小さな（修饰「空気の塊り」）；アスファルトの舗道には～あたりには～（环境描写）；まだ切手の貼られていない（修饰「角封筒」）；ひどく（修饰「眠そうな目」）；あるいは一晩かけて（推测写信用时）。",
+                cultureNotes: "「<span class='highlighted-term'>白いセーター</span>」「<span class='highlighted-term'>未贴邮票的角封筒</span>」：白色象征「纯粹」，「未完成的信」暗示「她的心事未传递」——与「我」的「未说出口的搭话」形成镜像，强化「错过」的遗憾。",
+                summary: "花屋の前で語り手は彼女とすれ違い、封筒や匂いを細部まで感じ取る。",
+                translation: "在花店门口，我和她擦肩而过。一团温热的小空气擦过皮肤。洒过水的柏油人行道上，有玫瑰的香味。我却还是开不了口。她穿白色毛衣，右手拿着一个还没贴邮票的白色方形大信封。她大概写了封信，甚至可能熬了一整夜。而那信封里也许装着关于她的全部秘密。",
+                highlights: ["店先", "すれ違う", "空気の塊り", "撒かれる", "角封筒", "貼られる", "かもしれない"],
+                type: "real"
+            },
+            {
+                id: 26,
+                original: "何歩か歩いてから振り返った時、彼女の姿は既に人混みの中に消えていた。",
+                vocabNotes: "① <span class='highlighted-term'>振り返る（ふりかえる）</span>：回头看（动作描写，表「不舍」）。<br>" +
+                          "② <span class='highlighted-term'>人混み（ひとごみ）</span>：人群、人潮（表「融入世俗，消失不见」）。",
+                cultureNotes: "重复「<span class='highlighted-term'>消えていた</span>」：强化「错过的不可逆」——刚意识到「100%」，已永远失去，符合村上「无常感」的主题。",
+                summary: "振り返ると彼女は人混みに消えていた。",
+                translation: "走了几步我回头时，她已经消失在人群里。",
+                highlights: ["振り返った", "人混み", "消えていた"],
+                type: "real"
+            },
+            {
+                id: 27,
+                original: "*",
+                summary: "＊（場面転換）",
+                translation: "*",
+                type: "real"
+            },
+            {
+                id: 28,
+                original: "もちろん今では、その時彼女に向ってどんな風に話しかけるべきであったのか。僕にはちゃんとわかっている。しかし何にしてもあまりに長い科白だから、きっと上手くはしゃべれなかったに違いない。このように、僕が思いつくことはいつも実用的ではないのだ。",
+                vocabNotes: "① <span class='highlighted-term'>向かって（文中写作向って）（むかって）</span>：对着、朝着（方向助词「に」的口语变体）。<br>" +
+                          "② <span class='highlighted-term'>科白（せりふ）</span>：台词（带「像演戏」之感）。<br>" +
+                          "③ <span class='highlighted-term'>実用的（じつようてき）</span>：实用的。",
+                sentenceNotes: "主干：僕はわかっている；科白は長い；上手くしゃべれなかったに違いない；思いつくことは実用的ではない。<br>" +
+                             "修饰：もちろん今では（时间状语）；しかし何にしても（转折）；あまりに（强调「太长」）；このように（总结）。",
+                cultureNotes: "「<span class='highlighted-term'>思いつくことはいつも実用的ではない</span>」：村上笔下「理想主义者的困境」——内心有完美的想象，却因「不实用」而无法行动，呼应「孤独的都市人」形象。",
+                summary: "今なら言うべき言葉は分かるが、長すぎて言えなかったと語る。",
+                translation: "当然，现在的我很清楚当时该怎样对她开口。但那段话太长了，我肯定说不好。总之，我想到的办法一向都不怎么'实用'。",
+                highlights: ["向って", "科白", "話しかける", "に違いない", "実用的"],
+                type: "real"
+            },
+            {
+                id: 29,
+                original: "とにかくその科白は「昔々」で始まり、「悲しい話だと思いませんか」で終わる。",
+                vocabNotes: "① <span class='highlighted-term'>とにかく</span>：总之、不管怎样（口语化总结）。<br>" +
+                          "② <span class='highlighted-term'>昔々（むかしむかし）</span>：很久很久以前（童话开头固定表达）。",
+                cultureNotes: "「<span class='highlighted-term'>昔々</span>」开头：将现实相遇转化为「童话」，赋予「100%」命运感——像童话般纯粹，却也像童话般易碎。",
+                summary: "その台詞は「昔々」で始まり「悲しい話」で終わると説明する。",
+                translation: "那段台词以'很久很久以前'开头，以'你不觉得这是个悲伤的故事吗'结尾。",
+                highlights: ["とにかく", "科白", "昔々"],
+                type: "real"
+            },
+            {
+                id: 30,
+                original: "*",
+                summary: "＊（物語の中の物語へ）",
+                translation: "*",
+                type: "fable"
+            },
+            {
+                id: 31,
+                original: "昔々、あるところに少年と少女がいた。少年は十八歳で、少女は十六歳だった。たいしてハンサムな少年でもないし、たいして綺麗な少女でもない。どこにでもいる孤独で平凡な少年と少女だ。でも彼らは、この世の中のどこかには１００パーセント自分にぴったりの少女と少年がいるに違いないと固く信じている。",
+                vocabNotes: "① <span class='highlighted-term'>昔々（むかしむかし）</span>：很久很久以前（童话开头固定表达，暗示「故事的宿命性」）。<br>" +
+                          "② <span class='highlighted-term'>たいして～ない</span>：并不怎么……（程度不高）。<br>" +
+                          "③ <span class='highlighted-term'>～に違いない</span>：一定……（很强的主观判断）。",
+                summary: "昔々、平凡な少年少女が100%の相手の存在を信じていた。",
+                translation: "很久以前，有个少年和少女：少年18岁，少女16岁，都不算英俊漂亮，只是孤独而平凡的普通人。但他们坚信：世界某处一定有一个与自己100%契合的人。",
+                highlights: ["昔々", "たいして", "に違いない", "１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 32,
+                original: "ある日二人は街角でばったりとめぐり会うことになる。",
+                vocabNotes: "① <span class='highlighted-term'>ばったり</span>：突然/偶然<br>" +
+                          "② <span class='highlighted-term'>めぐり会う（めぐりあう）</span>：邂逅、重逢（比「会う」更强调「命运的安排」）。",
+                summary: "ある日、二人は街角で偶然出会う。",
+                translation: "有一天，两人在街角突然相遇。",
+                highlights: ["ばったり", "めぐり会う"],
+                type: "fable"
+            },
+            {
+                id: 33,
+                original: "「驚いたな、僕はずっと君を捜していたんだよ。信じてくれないかもしれないけれど、君は僕にとって１００パーセントの女の子なんだよ」と少年は少女に言う。",
+                summary: "少年は少女が100%だと告げる。",
+                translation: "少年对少女说：'真意外，我一直在找你。也许你不信，但你对我来说就是100%契合的女孩。'",
+                highlights: ["かもしれない", "１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 34,
+                original: "少女は少年に言う。「あなたこそ私にとって１００パーセントの男の子なのよ。何から何まで私の想像していたとおり。まるで夢みたいだわ」",
+                summary: "少女も少年が100%だと応える。",
+                translation: "少女说：'你才是我100%契合的男孩。你的一切都和我想象的一样，像做梦。'",
+                highlights: ["１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 35,
+                original: "二人は公園のベンチに座り、いつまでも飽きることなく語りつづける。二人はもう孤独ではない。１００パーセント相手を求め、１００パーセント相手から求められるということは、なんて素晴らしいことなのだろう。",
+                vocabNotes: "① <span class='highlighted-term'>飽きることなく（あきることなく）</span>：不厌其烦地/怎么也 不腻。",
+                summary: "二人はベンチで語り合い、完全な相互性に喜ぶ。",
+                translation: "两人坐在公园长椅上，怎么聊都不腻。他们不再孤独：彼此100%地寻找、也被100%地需要，多么美好。",
+                highlights: ["飽きることなく", "１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 36,
+                original: "しかし二人の心をわずかな、ほんのわずかな疑念が横切る。こんなに簡単に夢が実現してしまって良いのだろうか、と。",
+                vocabNotes: "① <span class='highlighted-term'>疑念（ぎねん）</span>：疑虑<br>" +
+                          "② <span class='highlighted-term'>横切る（よこぎる）</span>：掠过（念头一闪而过）<br>" +
+                          "③ <span class='highlighted-term'>～てしまう</span>：表示结果/遗憾（不由得就……了）",
+                summary: "だが「簡単すぎる夢」に疑念がよぎる。",
+                translation: "但一丝极其微小的疑虑掠过：梦想实现得这么容易，真的可以吗？",
+                highlights: ["疑念", "横切る", "てしまう"],
+                type: "fable"
+            },
+            {
+                id: 37,
+                original: "会話がふと途切れた時、少年がこう言う。",
+                vocabNotes: "① <span class='highlighted-term'>ふと</span>：忽然、不经意",
+                summary: "会話が途切れたとき、少年が提案をする。",
+                translation: "谈话忽然停下来时，少年说：",
+                highlights: ["ふと"],
+                type: "fable"
+            },
+            {
+                id: 38,
+                original: "「ねえ、もう一度だけ試してみよう。もし僕たち二人が本当に１００パーセントの恋人同士だったとしたら、いつか必ずどこかでまためぐり会えるに違いない。そしてこの次にめぐり会った時に、やはりお互いが１００パーセントだったなら、そこですぐに結婚しよう。いいかい？」",
+                vocabNotes: "① <span class='highlighted-term'>～に違いない</span>：一定……（很强的主观判断）<br>" +
+                          "② <span class='highlighted-term'>めぐり会う</span>：邂逅/重逢",
+                summary: "いつか再会できるか試し、再会しても100%なら結婚しようと言う。",
+                translation: "'我们再试一次吧。如果我们真是100%的恋人，总有一天一定会再相遇。等下次相遇时，如果还是100%，我们就立刻结婚，好吗？'",
+                highlights: ["に違いない", "めぐり会う", "１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 39,
+                original: "「いいわ」と少女は言った。",
+                summary: "少女は同意する。",
+                translation: "少女说：'好呀。'",
+                type: "fable"
+            },
+            {
+                id: 40,
+                original: "そして二人は別れた。",
+                summary: "二人は別れる。",
+                translation: "于是两人分别。",
+                type: "fable"
+            },
+            {
+                id: 41,
+                original: "しかし本当のことを言えば、試してみる必要なんて何もなかったのだ。彼らは正真正銘の１００パーセントの恋人同士だったのだから。そしておきまりの運命の波が二人を翻弄することになる。",
+                vocabNotes: "① <span class='highlighted-term'>正真正銘（しょうしんしょうめい）</span>：货真价实<br>" +
+                          "② <span class='highlighted-term'>翻弄する（ほんろうする）</span>：摆布、捉弄",
+                summary: "実は試す必要はなく、二人は本物の100%だったと語られる。",
+                translation: "但说实话，其实根本没必要试。他们本来就是真正的100%恋人。只是命运那套老把戏开始摆布他们。",
+                highlights: ["正真正銘", "１００パーセント", "翻弄する"],
+                type: "fable"
+            },
+            {
+                id: 42,
+                original: "ある年の冬、二人はその年に流行《はや》った悪性のインフルエンザにかかり、何週間も生死の境をさまよった末に、昔の記憶をすっかり失くしてしまったのだ。彼らが目覚めた時、彼らの頭の中は少年時代のＤ・Ｈ・ロレンスの貯金箱のように空っぽだった。",
+                vocabNotes: "① <span class='highlighted-term'>流行った（はやった）</span>：曾流行<br>" +
+                          "② <span class='highlighted-term'>生死の境をさまよう（しょうしのさかいをさまよう）</span>：徘徊在生死边缘<br>" +
+                          "③ <span class='highlighted-term'>空っぽ（からっぽ）</span>：空空如也<br>" +
+                          "④ <span class='highlighted-term'>インフルエンザ（influenza）</span>：流感（文中「恶性流感」导致失忆，推动悲剧）。",
+                summary: "冬に流行病で二人は記憶を失い、頭の中は空っぽになる。",
+                translation: "某年冬天，两人感染了当年流行的恶性流感，在生死线上徘徊了数周后，把过去的记忆完全丢了。醒来时，脑子像少年时代的D.H.劳伦斯存钱罐一样空空如也。",
+                highlights: ["流行った", "生死の境をさまよった", "失くしてしまった", "空っぽ", "インフルエンザ"],
+                type: "fable"
+            },
+            {
+                id: 43,
+                original: "しかし二人は賢明で我慢強い少年と少女であったから、努力に努力をかさね、再び新しい知識や感情を身につけ、立派に社会に復帰することができた。彼らはちゃんと地下鉄を乗り換えたり、郵便局で速達を出したりできるようにもなった。そして75パーセントの恋愛や、85パーセントの恋愛を経験したりもした。",
+                vocabNotes: "① <span class='highlighted-term'>賢明（けんめい）</span>：明智<br>" +
+                          "② <span class='highlighted-term'>我慢強い（がまんづよい）</span>：有耐心<br>" +
+                          "③ <span class='highlighted-term'>努力に努力をかさね</span>：一再努力<br>" +
+                          "④ <span class='highlighted-term'>復帰（ふっき）</span>：回归、恢复（如「社会に復帰」=回归社会）。",
+                summary: "二人は努力して社会復帰し、日常生活も恋愛も経験する。",
+                translation: "不过他们聪明又有耐心，一再努力，重新学会新的知识与情感，顺利回到社会。他们会换乘地铁、会在邮局寄快件；也经历过75%的恋爱、85%的恋爱。",
+                highlights: ["賢明", "我慢強い", "努力に努力をかさね", "復帰", "パーセント"],
+                type: "fable"
+            },
+            {
+                id: 44,
+                original: "そのように少年は三十二歳になり、少女は三十歳になった。時は驚くべき速度で過ぎ去っていった。",
+                summary: "少年は32歳、少女は30歳となり、時間は速く過ぎた。",
+                translation: "就这样，少年三十二岁，少女三十岁。时间以惊人的速度流逝。",
+                type: "fable"
+            },
+            {
+                id: 45,
+                original: "そして四月のある晴れた朝、少年はモーニング・サービスのコーヒーを飲むために原宿の裏通りを西から東へと向い、少女は速達用の切手を買うために同じ通りを東から西へと向う。二人は通りのまんなかですれ違う。失われた記憶の微くかすかな光が二人の心を一瞬照らし出す。",
+                vocabNotes: "① <span class='highlighted-term'>切手（きって）</span>：邮票<br>" +
+                          "② <span class='highlighted-term'>速達（そくたつ）</span>：快件/快递挂号",
+                summary: "四月の朝、二人は再び原宿で反対方向から歩き、すれ違う。",
+                translation: "又是四月一个晴朗的早晨：少年为喝晨间套餐咖啡，从西向东走在原宿后街；少女为买快递邮票，从东向西走在同一条路上。他们在路中央擦肩而过，失落记忆的微光在两人心里一瞬间亮起。",
+                highlights: ["すれ違う", "切手", "速達"],
+                type: "fable"
+            },
+            {
+                id: 46,
+                original: "彼女は僕にとっての１００パーセントの女の子なんだ。",
+                summary: "彼は彼女を「100%」だと直感する。",
+                translation: "他心想：她是我100%契合的女孩。",
+                highlights: ["１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 47,
+                original: "彼は私にとっての１００パーセントの男の子だわ。",
+                summary: "彼女も彼を「100%」だと直感する。",
+                translation: "她心想：他是我100%契合的男孩。",
+                highlights: ["１００パーセント"],
+                type: "fable"
+            },
+            {
+                id: 48,
+                original: "しかし彼らの記憶の光は余りにも弱く、彼らのことばは十四年前ほど澄んではいない。二人はことばもなくすれ違い、そのまま人混みの中へと消えてしまう。",
+                vocabNotes: "① <span class='highlighted-term'>澄んではいない（すんではいない）</span>：不再清澈/不如从前纯净<br>" +
+                          "② <span class='highlighted-term'>人混み</span>：人群<br>" +
+                          "③ <span class='highlighted-term'>～てしまう</span>：表示结果/遗憾（不由得就……了）",
+                summary: "しかし記憶の光は弱く、言葉は出ず、二人は消えてしまう。",
+                translation: "但那记忆的光太弱，他们的语言也不如十四年前清澈。他们沉默地擦肩而过，随即消失在人群中。",
+                highlights: ["澄んではいない", "人混み", "すれ違い", "てしまう"],
+                type: "fable"
+            },
+            {
+                id: 49,
+                original: "悲しい話だと思いませんか。",
+                summary: "語り手は読者に「悲しい話でしょう」と問う。",
+                translation: "你不觉得这是个悲伤的故事吗？",
+                type: "fable"
+            },
+            {
+                id: 50,
+                original: "*",
+                summary: "＊（枠物語に戻る）",
+                translation: "*",
+                type: "real"
+            },
+            {
+                id: 51,
+                original: "僕は彼女にそんな風に切り出してみるべきであったのだ。",
+                vocabNotes: "① <span class='highlighted-term'>切り出す（きりだす）</span>：开口说、切入主题（表「说出关键的话」）。<br>" +
+                          "② <span class='highlighted-term'>～べきであった</span>：本应该（表「后悔未做某事」，「べき」=应该+「であった」=过去式）。",
+                cultureNotes: "结尾的「<span class='highlighted-term'>べきであった</span>」：收束全文的「未完成感」——若说了那句「昔々」开头的台词，或许能唤醒记忆？但村上不给出答案，留给读者对「命运与勇气」的思考。",
+                summary: "語り手は本当はあの時そう切り出すべきだったと結ぶ。",
+                translation: "我本应该像那样对她开口的。",
+                highlights: ["切り出す", "べきであった"],
+                type: "real"
+            }
+        ];
+
+        // 初始化函数
+        function init() {
+            renderParagraphs();
+            setupEventListeners();
+            setupJumpSelector();
+            updateProgressBar();
+            loadSettings();
+            
+            // 监听滚动事件更新进度条和专注模式
+            window.addEventListener('scroll', () => {
+                updateProgressBar();
+                updateFocusMode();
+            });
+        }
+
+        // 渲染所有段落
+        function renderParagraphs() {
+            const container = document.getElementById('paragraphs-container');
+            container.innerHTML = '';
+            
+            paragraphs.forEach(para => {
+                const card = document.createElement('div');
+                card.className = 'paragraph-card';
+                card.id = `paragraph-${para.id}`;
+                card.dataset.paraId = para.id;
+                card.dataset.type = para.type;
+                
+                // 处理原文，添加词汇高亮
+                let highlightedOriginal = para.original;
+                if (para.highlights) {
+                    para.highlights.forEach(vocab => {
+                        // 转义特殊字符
+                        const escapedVocab = vocab.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        // 创建正则表达式，确保匹配完整的词汇
+                        const regex = new RegExp(`(${escapedVocab})`, 'g');
+                        highlightedOriginal = highlightedOriginal.replace(regex, 
+                            `<span class="vocab-highlight" title="点击查看注释">$1</span>`
+                        );
+                    });
+                }
+                
+                card.innerHTML = `
+                    <div class="paragraph-header">
+                        <span class="paragraph-number">${para.id.toString().padStart(2, '0')}</span>
+                        <div class="paragraph-controls">
+                            ${para.vocabNotes ? `<button class="btn btn-small toggle-vocab" data-para="${para.id}">词汇注释</button>` : ''}
+                            ${para.sentenceNotes ? `<button class="btn btn-small toggle-sentence" data-para="${para.id}">句子结构</button>` : ''}
+                            ${para.cultureNotes ? `<button class="btn btn-small toggle-culture" data-para="${para.id}">文化注释</button>` : ''}
+                            ${para.summary ? `<button class="btn btn-small toggle-summary" data-para="${para.id}">要旨</button>` : ''}
+                            ${para.translation ? `<button class="btn btn-small toggle-translation" data-para="${para.id}">译文</button>` : ''}
+                        </div>
+                    </div>
+                    <div class="original-text">${highlightedOriginal}</div>
+                    ${para.vocabNotes ? `
+                    <div class="expandable-panel vocab-notes" id="vocab-notes-${para.id}">
+                        <div class="panel-header">
+                            <span>词汇注释</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="panel-content notes-content">
+                            <div class="notes-section">
+                                <h4>阻断理解的词汇/搭配：</h4>
+                                <div>${para.vocabNotes}</div>
+                            </div>
+                        </div>
+                    </div>` : ''}
+                    ${para.sentenceNotes ? `
+                    <div class="expandable-panel sentence-notes" id="sentence-notes-${para.id}">
+                        <div class="panel-header">
+                            <span>句子结构提示</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="panel-content notes-content">
+                            <div class="notes-section">
+                                <h4>长难句结构提示：</h4>
+                                <div>${para.sentenceNotes}</div>
+                            </div>
+                        </div>
+                    </div>` : ''}
+                    ${para.cultureNotes ? `
+                    <div class="expandable-panel culture-notes" id="culture-notes-${para.id}">
+                        <div class="panel-header">
+                            <span>文化/语用注释</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="panel-content notes-content">
+                            <div class="notes-section">
+                                <h4>文化/语用注释：</h4>
+                                <div>${para.cultureNotes}</div>
+                            </div>
+                        </div>
+                    </div>` : ''}
+                    ${para.summary ? `
+                    <div class="expandable-panel summary" id="summary-${para.id}">
+                        <div class="panel-header">
+                            <span>要旨</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="panel-content">${para.summary}</div>
+                    </div>` : ''}
+                    ${para.translation ? `
+                    <div class="expandable-panel translation" id="translation-${para.id}">
+                        <div class="panel-header">
+                            <span>译文</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="panel-content">${para.translation}</div>
+                    </div>` : ''}
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 展开/收起全部
+            document.getElementById('expand-all').addEventListener('click', () => {
+                document.querySelectorAll('.expandable-panel').forEach(panel => {
+                    panel.classList.add('expanded');
+                });
+            });
+            
+            document.getElementById('collapse-all').addEventListener('click', () => {
+                document.querySelectorAll('.expandable-panel').forEach(panel => {
+                    panel.classList.remove('expanded');
+                });
+            });
+            
+            // 模式切换
+            document.getElementById('night-mode').addEventListener('click', toggleNightMode);
+            document.getElementById('focus-mode').addEventListener('click', toggleFocusMode);
+            
+            // 段落跳转
+            document.getElementById('jump-selector').addEventListener('change', function() {
+                if (this.value) {
+                    const target = document.getElementById(`paragraph-${this.value}`);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // 在专注模式下高亮目标段落
+                        if (document.body.classList.contains('focus-mode')) {
+                            document.querySelectorAll('.paragraph-card').forEach(card => {
+                                card.classList.remove('focused');
+                            });
+                            target.classList.add('focused');
+                        }
+                    }
+                    this.value = ''; // 重置选择器
+                }
+            });
+            
+            // 过滤器按钮
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    
+                    // 更新按钮状态
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // 过滤段落
+                    document.querySelectorAll('.paragraph-card').forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = 'block';
+                        } else {
+                            if (card.dataset.type === filter) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // 点击面板标题展开/收起
+            document.addEventListener('click', function(e) {
+                // 面板标题点击
+                if (e.target.classList.contains('panel-header') || 
+                    e.target.closest('.panel-header')) {
+                    const header = e.target.classList.contains('panel-header') ? 
+                        e.target : e.target.closest('.panel-header');
+                    const panel = header.parentElement;
+                    panel.classList.toggle('expanded');
+                }
+                
+                // 按钮点击展开/收起特定面板
+                const buttonClasses = [
+                    'toggle-vocab', 'toggle-sentence', 'toggle-culture', 
+                    'toggle-summary', 'toggle-translation'
+                ];
+                
+                buttonClasses.forEach(className => {
+                    if (e.target.classList.contains(className)) {
+                        const paraId = e.target.dataset.para;
+                        const panelType = className.replace('toggle-', '');
+                        const panel = document.getElementById(`${panelType}-${paraId}`);
+                        if (panel) {
+                            panel.classList.toggle('expanded');
+                        }
+                    }
+                });
+                
+                // 点击高亮词汇时展开词汇注释
+                if (e.target.classList.contains('vocab-highlight')) {
+                    const paraCard = e.target.closest('.paragraph-card');
+                    if (paraCard) {
+                        const paraId = paraCard.dataset.paraId;
+                        const vocabPanel = document.getElementById(`vocab-notes-${paraId}`);
+                        if (vocabPanel) {
+                            // 收起其他面板，展开词汇注释
+                            paraCard.querySelectorAll('.expandable-panel').forEach(panel => {
+                                panel.classList.remove('expanded');
+                            });
+                            vocabPanel.classList.add('expanded');
+                        }
+                    }
+                }
+            });
+        }
+
+        // 设置段落跳转选择器
+        function setupJumpSelector() {
+            const selector = document.getElementById('jump-selector');
+            
+            // 清空默认选项之后的内容
+            while (selector.options.length > 1) {
+                selector.remove(1);
+            }
+            
+            // 添加段落选项
+            paragraphs.forEach(para => {
+                const option = document.createElement('option');
+                option.value = para.id;
+                option.textContent = `段落 ${para.id.toString().padStart(2, '0')}`;
+                selector.appendChild(option);
+            });
+        }
+
+        // 更新进度条
+        function updateProgressBar() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            const scrollPercent = (scrollTop / (docHeight - winHeight)) * 100;
+            document.getElementById('progress-bar').style.width = `${scrollPercent}%`;
+        }
+
+        // 切换夜间模式
+        function toggleNightMode() {
+            document.body.classList.toggle('night-mode');
+            const btn = document.getElementById('night-mode');
+            btn.classList.toggle('active');
+            
+            // 保存设置
+            localStorage.setItem('nightMode', document.body.classList.contains('night-mode'));
+        }
+
+        // 切换专注模式
+        function toggleFocusMode() {
+            document.body.classList.toggle('focus-mode');
+            const btn = document.getElementById('focus-mode');
+            btn.classList.toggle('active');
+            
+            // 如果开启专注模式，找到当前可见的段落并高亮
+            if (document.body.classList.contains('focus-mode')) {
+                updateFocusMode();
+            }
+            
+            // 保存设置
+            localStorage.setItem('focusMode', document.body.classList.contains('focus-mode'));
+        }
+
+        // 更新专注模式的高亮段落
+        function updateFocusMode() {
+            if (!document.body.classList.contains('focus-mode')) return;
+            
+            const paragraphs = document.querySelectorAll('.paragraph-card');
+            let focusedPara = null;
+            
+            paragraphs.forEach(para => {
+                const rect = para.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight * 0.7 && rect.bottom > window.innerHeight * 0.3;
+                
+                if (isVisible) {
+                    focusedPara = para;
+                }
+                para.classList.remove('focused');
+            });
+            
+            if (focusedPara) {
+                focusedPara.classList.add('focused');
+            }
+        }
+
+        // 加载设置
+        function loadSettings() {
+            // 夜间模式
+            if (localStorage.getItem('nightMode') === 'true') {
+                document.body.classList.add('night-mode');
+                document.getElementById('night-mode').classList.add('active');
+            }
+            
+            // 专注模式
+            if (localStorage.getItem('focusMode') === 'true') {
+                document.body.classList.add('focus-mode');
+                document.getElementById('focus-mode').classList.add('active');
+                // 延迟执行以便DOM完全加载
+                setTimeout(updateFocusMode, 100);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
